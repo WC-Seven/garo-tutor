@@ -32,6 +32,7 @@ const initialProfile = {
 export function OnboardingScreen({ navigation }) {
   const [profile, setProfile] = useState(initialProfile);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   function updateField(field, value) {
     setProfile((current) => ({
@@ -46,12 +47,15 @@ export function OnboardingScreen({ navigation }) {
     }
 
     setLoading(true);
+    setErrorMessage("");
 
     try {
       const createdProfile = await createProfile(profile);
       navigation.navigate("Chat", { profile: createdProfile });
     } catch (error) {
-      navigation.navigate("Chat", { profile });
+      setErrorMessage(
+        "Nao foi possivel criar seu perfil na API. Verifique a URL do backend e se o banco esta disponivel."
+      );
     } finally {
       setLoading(false);
     }
@@ -123,6 +127,8 @@ export function OnboardingScreen({ navigation }) {
               multiline
             />
           </View>
+
+          {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
 
           <Pressable
             onPress={handleStart}
@@ -255,5 +261,10 @@ const styles = StyleSheet.create({
     color: theme.colors.primaryContrast,
     fontSize: 16,
     fontWeight: "800",
+  },
+  errorMessage: {
+    color: "#a63f2e",
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

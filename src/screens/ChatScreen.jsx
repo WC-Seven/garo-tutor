@@ -17,6 +17,7 @@ import { theme } from "../theme/theme";
 
 export function ChatScreen({ route }) {
   const profile = route.params?.profile ?? {};
+  const [conversationId, setConversationId] = useState(route.params?.conversationId ?? null);
   const [messages, setMessages] = useState([
     {
       id: "welcome",
@@ -44,8 +45,7 @@ export function ChatScreen({ route }) {
       content: trimmedInput,
     };
 
-    const nextMessages = [...messages, userMessage];
-    setMessages(nextMessages);
+    setMessages((current) => [...current, userMessage]);
     setInput("");
     setLoading(true);
 
@@ -53,11 +53,16 @@ export function ChatScreen({ route }) {
       const response = await sendChatMessage({
         message: trimmedInput,
         profile,
-        conversationHistory: nextMessages.map(({ role, content }) => ({
+        conversationId,
+        conversationHistory: messages.map(({ role, content }) => ({
           role,
           content,
         })),
       });
+
+      if (response.conversationId) {
+        setConversationId(response.conversationId);
+      }
 
       const assistantMessage = {
         id: `assistant-${Date.now()}`,
@@ -74,7 +79,7 @@ export function ChatScreen({ route }) {
           id: `error-${Date.now()}`,
           role: "assistant",
           content:
-            "Nao foi possivel falar com a API agora. Verifique a configuracao do endpoint e tente novamente.",
+            "Nao foi possivel falar com a API agora. Verifique o servidor, o banco e tente novamente.",
         },
       ]);
     } finally {
@@ -92,6 +97,9 @@ export function ChatScreen({ route }) {
           <Text style={styles.headerText}>{headerSummary}</Text>
           <Text style={styles.headerText}>
             Objetivo: {profile.goals || "Ganhar fluencia em conversas profissionais"}
+          </Text>
+          <Text style={styles.headerMeta}>
+            {conversationId ? `Historico ativo: ${conversationId}` : "Nova conversa"}
           </Text>
         </View>
 
@@ -160,6 +168,11 @@ const styles = StyleSheet.create({
     color: theme.colors.secondaryText,
     fontSize: 14,
     lineHeight: 20,
+  },
+  headerMeta: {
+    color: theme.colors.muted,
+    fontSize: 12,
+    lineHeight: 18,
   },
   messages: {
     paddingBottom: 12,

@@ -20,6 +20,7 @@ export async function sendChatMessage(payload) {
 
   return {
     reply: data.message,
+    conversationId: data.conversationId ?? null,
     success: Boolean(data.success),
     usage: data.usage ?? null,
   };
